@@ -4,6 +4,9 @@ import {OBJECT_PLACED_EVENT} from './tap-to-place'
 // 바닥 인식 표시기.
 // 화면 중앙에서 바닥(y=0 평면)으로 레이를 쏴 그 지점에 링을 놓는다.
 // 배치 전에는 계속 따라다니고, 배치되면 숨는다. 리셋하면 다시 나온다.
+//
+// 주의: onTick 안에서 예외가 나면 ECS 업데이트 루프 전체가 멈춰 화면이 백지가 된다.
+// 그래서 본문 전체를 try/catch 로 감싸고, 실패하면 이 컴포넌트만 조용히 죽는다.
 ecs.registerComponent({
   name: 'floor-reticle',
   schema: {
@@ -15,51 +18,69 @@ ecs.registerComponent({
     minDistance: 0.4,
   },
   stateMachine: ({world, eid, entity, schemaAttribute, defineState}) => {
-    const camPos = ecs.math.vec3.zero()
-    const camRot = {x: 0, y: 0, z: 0, w: 1}
+    let dead = false      // 한 번이라도 실패하면 이후 동작을 멈춘다
+    let shown = true      // hide/show 를 매 프레임 호출하지 않기 위한 상태 기억
+
+    const setShown = (v: boolean) => {
+      if (v === shown) {
+        return
+      }
+      shown = v
+      if (v) {
+        entity.show()
+      } else {
+        entity.hide()
+      }
+    }
 
     const follow = () => {
-      const cfg = schemaAttribute.get(eid)
-      let camEid
+      if (dead) {
+        return
+      }
       try {
-        camEid = world.camera.getActiveEid()
+        const camEid = world.camera.getActiveEid()
+        if (camEid === undefined || camEid === null) {
+          return
+        }
+
+        const c = world.transform.getWorldPosition(camEid)
+        const q = world.transform.getWorldQuaternion(camEid)
+        if (!c || !q) {
+          return
+        }
+
+        // 카메라 정면 = 쿼터니언으로 회전시킨 (0, 0, -1)
+        const fx = -2 * (q.w * q.y + q.x * q.z)
+        const fy = 2 * (q.w * q.x - q.y * q.z)
+        const fz = 2 * (q.x * q.x + q.y * q.y) - 1
+
+        if (fy > -0.05) {        // 위를 보고 있으면 바닥과 안 만난다
+          setShown(false)
+          return
+        }
+
+        const cfg = schemaAttribute.get(eid)
+        const maxD = (cfg && cfg.maxDistance) || 8
+        const minD = (cfg && cfg.minDistance) || 0.4
+
+        const t = -c.y / fy
+        if (!isFinite(t) || t < minD || t > maxD) {
+          setShown(false)
+          return
+        }
+
+        setShown(true)
+        entity.setLocalPosition({
+          x: c.x + fx * t,
+          y: 0.012,            // z-fighting 방지용으로 바닥에서 살짝 띄움
+          z: c.z + fz * t,
+        })
       } catch (err) {
-        return
+        dead = true
+        try {
+          entity.hide()
+        } catch (e) { /* noop */ }
       }
-      if (camEid === undefined || camEid === null) {
-        return
-      }
-
-      world.transform.getWorldPosition(camEid, camPos)
-      const q = world.transform.getWorldQuaternion(camEid, camRot as any)
-      const x = q.x
-      const y = q.y
-      const z = q.z
-      const w = q.w
-
-      // 카메라 정면 = 쿼터니언으로 회전시킨 (0, 0, -1)
-      const fx = -2 * (w * y + x * z)
-      const fy = 2 * (w * x - y * z)
-      const fz = 2 * (x * x + y * y) - 1
-
-      // 아래를 향하고 있어야 바닥과 만난다
-      if (fy > -0.05) {
-        entity.hide()
-        return
-      }
-
-      const t = -camPos.y / fy
-      if (t < cfg.minDistance || t > cfg.maxDistance) {
-        entity.hide()
-        return
-      }
-
-      entity.show()
-      entity.setLocalPosition({
-        x: camPos.x + fx * t,
-        y: 0.012,          // z-fighting 방지용으로 바닥에서 살짝 띄움
-        z: camPos.z + fz * t,
-      })
     }
 
     defineState('searching')
@@ -68,8 +89,10 @@ ecs.registerComponent({
       .onEvent(OBJECT_PLACED_EVENT, 'placed', {target: world.events.globalId})
 
     defineState('placed')
-      .onEnter(() => entity.hide())
-      .onExit(() => entity.show())
+      .onEnter(() => {
+        shown = true
+        setShown(false)
+      })
       // 리셋 버튼이 건물을 지우면 다시 탐색 상태로 돌아간다
       .onEvent(ecs.input.UI_CLICK, 'searching', {target: world.events.globalId})
   },

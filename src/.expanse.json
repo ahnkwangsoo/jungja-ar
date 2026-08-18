@@ -64,8 +64,8 @@
      2.0,
      -5.75
     ],
-    "shadowBias": -0.0004,
-    "shadowNormalBias": 0.03,
+    "shadowBias": -0.0015,
+    "shadowNormalBias": 0.09,
     "shadowRadius": 1.5,
     "shadowBlurSamples": 4,
     "shadowMapSize": [
@@ -73,12 +73,12 @@
      1024
     ],
     "shadowCamera": [
-     -14,
-     14,
-     14,
-     -14,
+     -9,
+     9,
+     9,
+     -9,
      0.5,
-     60
+     45
     ],
     "followCamera": false
    },

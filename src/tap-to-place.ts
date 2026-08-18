@@ -53,11 +53,16 @@ ecs.registerComponent({
       if (cfg.faceCamera) {
         try {
           const camEid = world.camera.getActiveEid()
-          const c = world.transform.getWorldPosition(camEid)
-          const dx = c.x - p.x
-          const dz = c.z - p.z
-          if (dx * dx + dz * dz > 1e-6) {
-            yaw = Math.atan2(dx, dz)
+          const c = camEid == null ? null : world.transform.getWorldPosition(camEid)
+          if (c) {
+            const dx = c.x - p.x
+            const dz = c.z - p.z
+            if (dx * dx + dz * dz > 1e-6) {
+              const a = Math.atan2(dx, dz)
+              if (isFinite(a)) {
+                yaw = a
+              }
+            }
           }
         } catch (err) {
           yaw = 0  // 카메라를 못 읽으면 월드 기준 그대로 둔다
