@@ -66,11 +66,11 @@
     ],
     "shadowBias": -0.0004,
     "shadowNormalBias": 0.03,
-    "shadowRadius": 3,
-    "shadowBlurSamples": 16,
+    "shadowRadius": 1.5,
+    "shadowBlurSamples": 4,
     "shadowMapSize": [
-     2048,
-     2048
+     1024,
+     1024
     ],
     "shadowCamera": [
      -14,
@@ -599,6 +599,107 @@
    },
    "name": "Fill Light",
    "order": 0.9
+  },
+  "aaaa0001-0000-4000-8000-000000000001": {
+   "id": "aaaa0001-0000-4000-8000-000000000001",
+   "position": [
+    0,
+    0.012,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "geometry": null,
+   "material": null,
+   "parentId": "84028e73-ee70-412d-b8d4-c09bf07c655c",
+   "name": "Reticle",
+   "order": 5.5,
+   "components": {
+    "bbbb0001-0000-4000-8000-000000000001": {
+     "id": "bbbb0001-0000-4000-8000-000000000001",
+     "name": "floor-reticle",
+     "parameters": {
+      "maxDistance": 8,
+      "minDistance": 0.4
+     }
+    }
+   }
+  },
+  "aaaa0002-0000-4000-8000-000000000002": {
+   "id": "aaaa0002-0000-4000-8000-000000000002",
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotation": [
+    -0.7071068,
+    0,
+    0,
+    0.7071068
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "geometry": {
+    "type": "ring",
+    "innerRadius": 0.82,
+    "outerRadius": 1.0
+   },
+   "material": {
+    "type": "unlit",
+    "color": "#ffd479",
+    "opacity": 0.85,
+    "side": "double"
+   },
+   "parentId": "aaaa0001-0000-4000-8000-000000000001",
+   "components": {},
+   "name": "Reticle Ring",
+   "order": 1
+  },
+  "aaaa0003-0000-4000-8000-000000000003": {
+   "id": "aaaa0003-0000-4000-8000-000000000003",
+   "position": [
+    0,
+    0,
+    0
+   ],
+   "rotation": [
+    -0.7071068,
+    0,
+    0,
+    0.7071068
+   ],
+   "scale": [
+    1,
+    1,
+    1
+   ],
+   "geometry": {
+    "type": "circle",
+    "radius": 0.1
+   },
+   "material": {
+    "type": "unlit",
+    "color": "#ffffff",
+    "opacity": 0.9,
+    "side": "double"
+   },
+   "parentId": "aaaa0001-0000-4000-8000-000000000001",
+   "components": {},
+   "name": "Reticle Dot",
+   "order": 2
   }
  },
  "spaces": {
